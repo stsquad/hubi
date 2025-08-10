@@ -1,0 +1,48 @@
+* *Homogeneous Unified Builder Interface*
+
+Welcome to the *Homogeneous Unified Builder Interface* or *HUBI*
+
+This is a "batteries included" extension for Emacs for building
+software projects.
+
+It presents transient interface when you can select the build tool,
+build directory and target before invoking the build. It tries to
+probe for build configuration so it can offer a narrowing list of
+targets. The current build and history is stored in a per-project
+.dir-locals2. file.
+
+* History
+
+A lot of the probe and configuration is inspired by `counsel-compile`
+which I was also involved in developing. However the hope is the
+transient interface presents a more natural interface for tweaking
+things like build parameters than a pure narrowing interface.
+
+* Installing
+
+If there is interest I have no problem adding this to ELPA or MELPA.
+However currently its origin as one persons pet quality of life tool
+makes it suitable for those with an adventurous spirit who are happy
+running the code out of a git tree.
+
+Checkout the repository and then you can use something like
+use-package to load it:
+
+#+begin_src elisp :lexical no
+  (use-package hubi
+    :load-path "/path/to/hubi.git"
+    :bind ("C-c c" . hubi))
+#+end_src
+
+* Invocation
+
+`M-x hubi` or your preferred global keybinding and you should be
+presented with an interface like this:
+
+[[file:docs/screenshot.png]]
+
+Once you have selected the target and setup `C-c C-c` will invoke the
+build tool. `C-g` will quite the interface.   
+
+
+
