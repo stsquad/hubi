@@ -422,19 +422,19 @@ ARGS used for transient arguments."
 (defun hubi--save-project-vars ()
   "Save the hubi variables to the project."
   (let ((dir-local (hubi--dir-local-file)))
-    (save-window-excursion
       (mapc
        (lambda (var-symbol)
          (when (symbol-value var-symbol)
-           (modify-dir-local-variable
-            nil
-            var-symbol
-            (symbol-value var-symbol)
-            'add-or-replace
-            dir-local)))
-      hubi-project-variable-list)
-      (with-current-buffer (get-file-buffer dir-local)
-        (setq-local buffer-save-without-query t)))))
+           (save-window-excursion
+             (modify-dir-local-variable
+              nil
+              var-symbol
+              (symbol-value var-symbol)
+              'add-or-replace
+              dir-local))))
+         hubi-project-variable-list)
+       (with-current-buffer (get-file-buffer dir-local)
+         (setq-local buffer-save-without-query t))))
 
 ;;
 ;; These define the immediate helpers and actions for the transient
