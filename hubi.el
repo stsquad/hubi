@@ -159,8 +159,12 @@ tree."
       (list srcdir))))
 
 ;;
-;; Target helpers
+;; Tool and Target helpers
 ;;
+
+(defcustom hubi-make-pattern "\\`\\(?:GNUm\\|[Mm]\\)akefile\\'"
+  "Regexp for matching the names of Makefiles."
+  :type 'regexp)
 
 (defvar hubi-make-phony-pattern "^\\.PHONY:[\t ]+\\(.+\\)$"
   "Regexp for extracting phony targets from Makefiles.")
@@ -168,6 +172,14 @@ tree."
 (defvar hubi-help-pattern
   "\\(?:^\\(\\*\\)?[[:space:]]+\\([^[:space:]]+\\)[[:space:]]+-\\)"
   "Regexp for extracting help targets from a make help call.")
+
+(defun hubi--make-commands (bld-dir)
+  "Scan the BLD_DIR signs of a Makefile and the correct make
+invocation if we find something."
+    (if (directory-files
+         bld-dir nil hubi-make-pattern t)
+        (list "make")
+      nil))
 
 ;; This is loosely based on the Bash Make completion code which
 ;; relies on GNUMake having the following return codes:
@@ -193,10 +205,24 @@ pristine and being used for multiple build trees."
           (push (split-string (match-string-no-properties 1)) targets))
         (sort (apply #'nconc targets) #'string-lessp)))))
 
+
+;; (rx (or "build.ninja" "Makefile.ninja"))
+(defcustom hubi-ninja-pattern "\\(?:\\(?:Makefile\\|build\\)\\.ninja\\)"
+  "Regexp for matching the names of Makefiles."
+  :type 'regexp)
+
 ;; (rx (one-or-more blank) (group (one-or-more (not (in blank ":")))))
 (defvar hubi-ninja-target-pattern
   "[[:blank:]]+\\([^:[:blank:]]+\\)"
   "Regexp for extracting target names from Ninja query output.")
+
+(defun hubi--ninja-commands (bld-dir)
+  "Scan `BLD-DIR' for signs of a Ninja build and return
+  potential ninja commands if we find something."
+    (if (directory-files
+         bld-dir nil hubi-ninja-pattern t)
+        (list "ninja")
+      nil))
 
 (defun hubi--ninja-targets (build-dir &optional env)
   "Return a list of Make targets for DIR.
@@ -223,6 +249,32 @@ pristine and being used for multiple build trees."
     ("ninja" . hubi--ninja-targets))
   "Alist of compiler tool names and their target helper functions.
 The functions take the build directory as a single argument.")
+
+
+(defcustom hubi-build-tool-helpers
+  '(hubi--make-commands
+    hubi--ninja-commands)
+  "Functions to determine the available build tools.
+
+Each function on this list is called in turn with a list of
+  directories to scan. If signs of the build tool are found it returns
+  a list of commands."
+  :type '(repeat (function))
+  :group 'compile)
+
+
+;; We probe the current build directory, failing that the project root
+(defun hubi--get-tools ()
+  "Return a list of commands and tools we could use based on probing
+the current build directory or project root."
+  (let ((bld-dir (or hubi-directory (hubi--compile-root)))
+        (tools))
+    (dolist (helper hubi-build-tool-helpers)
+      (when (fboundp helper)
+        (let ((result (funcall helper bld-dir)))
+          (when result
+            (setq tools (append tools result))))))
+    (delete-dups tools)))
 
 ;;
 ;; Environment handling helpers
@@ -322,13 +374,6 @@ formatted string. Lookup the helper from
 
 (defvar hubi-invocation-history nil
   "Command history for `hubi'")
-
-;; currently dumb, we can make smarter
-;; we probe the current build directory for things that would prompt
-;; for a particular build.
-(defun hubi--get-tools ()
-  "Return a list of commands and tools we could use"
-  '("make" "ninja"))
 
 (transient-define-suffix hubi-get-tool (&optional args)
   "Read the build command we are going to use.
