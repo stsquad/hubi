@@ -329,7 +329,7 @@ formatted string. Lookup the helper from
   "Return a list of commands and tools we could use"
   '("make" "ninja"))
 
-(transient-define-suffix hubi-get-invocation (&optional args)
+(transient-define-suffix hubi-get-tool (&optional args)
   "Read the build command we are going to use.
 ARGS used for transient arguments."
   :transient t
@@ -501,7 +501,7 @@ ARGS used for transient arguments."
    :description hubi--show-current-compile
 
    ["Settings"
-    ("C" "Compile Command" hubi-get-invocation)
+    ("C" "Compile Command" hubi-get-tool)
     ("D" "Build Dir" hubi-get-dir)
     ("T" "Target" hubi-get-target)]
 
