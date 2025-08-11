@@ -28,6 +28,7 @@
 
 (require 'cl-lib)
 (require 'files-x)
+(require 'transient)
 
 (defvar hubi-saved-options nil
   "List of default compile options.")
