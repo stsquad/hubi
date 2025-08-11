@@ -250,9 +250,9 @@ ARGS used for transient arguments."
   :transient t
   (interactive (list (transient-args transient-current-command)))
   (let ((new-env
-         (completing-read "Env: " nil nil
+         (completing-read "Env: " hubi-env-history nil
                           #'hubi-env-p nil
-                          hubi-env-history)))
+                          'hubi-env-history)))
     (when new-env
       (push new-env hubi-env))))
 
@@ -337,8 +337,8 @@ ARGS used for transient arguments."
   (interactive (list (transient-args transient-current-command)))
   (let ((cmd (completing-read "Command: "
                               (hubi--get-tools)
-                              nil nil
-                              hubi-invocation-history)))
+                              nil nil nil
+                              'hubi-invocation-history)))
     (when cmd
       (setq hubi-invocation cmd))))
 
@@ -365,7 +365,9 @@ ARGS used for transient arguments."
           (completing-read
            "Build Directory: "
            (hubi-get-build-directories base-dir)
-           nil t base-dir hubi-directory-history)))
+           nil t
+           (or hubi-directory base-dir)
+           'hubi-directory-history)))
     (when build-dir
       (setq hubi-directory build-dir))))
 
