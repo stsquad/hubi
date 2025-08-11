@@ -413,10 +413,10 @@ ARGS used for transient arguments."
 ;;
 
 (defvar hubi-project-variable-list
-  '(hubi-invocation hubi-invocation-history
-    hubi-directory hubi-directory-history
-    hubi-target hubi-target-history
-    hubi-env hubi-env-history)
+  '(hubi-invocation
+    hubi-directory
+    hubi-target
+    hubi-env)
   "List of variables we save in the project.")
 
 (defun hubi--save-project-vars ()
