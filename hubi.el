@@ -30,8 +30,11 @@
 (require 'files-x)
 (require 'transient)
 
-(defvar hubi-saved-options nil
-  "List of default compile options.")
+(defgroup hubi nil
+  "Run build tool via M-x compile."
+  :group 'tools
+  :group 'processes
+  :group 'compilation)
 
 ;; c.f. counsel--dominating-file
 (defun hubi--dominating-file (file &optional dir)
