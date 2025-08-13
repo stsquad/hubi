@@ -162,9 +162,16 @@ tree."
       (list srcdir))))
 
 ;;
+(defun hubi--string-contains-p (elem key)
+  "Check if elem (from the alist) is contained in the key. This allows
+for sub-string matching in the tool name."
+  (string-match-p (regexp-quote elem) key))
+
+;;
 ;; Tool and Target helpers
 ;;
 
+;; Make
 (defcustom hubi-make-pattern "\\`\\(?:GNUm\\|[Mm]\\)akefile\\'"
   "Regexp for matching the names of Makefiles."
   :type 'regexp)
@@ -187,7 +194,7 @@ invocation if we find something."
 ;; This is loosely based on the Bash Make completion code which
 ;; relies on GNUMake having the following return codes:
 ;;   0 = no-rebuild, -q & 1 needs rebuild, 2 error
-(defun hubi--make-targets (build-dir &optional env)
+(defun hubi--make-targets (cmd build-dir &optional env)
   "Return a list of Make targets for DIR.
 
 Return a single blank target (so we invoke the default target)
@@ -208,7 +215,7 @@ pristine and being used for multiple build trees."
           (push (split-string (match-string-no-properties 1)) targets))
         (sort (apply #'nconc targets) #'string-lessp)))))
 
-
+;; Ninja
 ;; (rx (or "build.ninja" "Makefile.ninja"))
 (defcustom hubi-ninja-pattern "\\(?:\\(?:Makefile\\|build\\)\\.ninja\\)"
   "Regexp for matching the names of Makefiles."
@@ -227,7 +234,7 @@ pristine and being used for multiple build trees."
         (list "ninja")
       nil))
 
-(defun hubi--ninja-targets (build-dir &optional env)
+(defun hubi--ninja-targets (cmd build-dir &optional env)
   "Return a list of Make targets for DIR.
 
 Return a single blank target (so we invoke the default target)
@@ -246,22 +253,121 @@ pristine and being used for multiple build trees."
           (push (split-string (match-string-no-properties 1)) targets))
         (sort (apply #'nconc targets) #'string-lessp)))))
 
+;; Meson handling
+;;
+;; There are a bunch of extra hoops we jump for meson. The first
+;; problem is meson is often bundled in the build to get the latest
+;; version. It is also has a range of jobs it can run aside from
+;; building things and these require slightly different invocations.
+;;
+;; Fortunately the targets of all of these are easy to introspect
+;; although again a bunch of special casing is needed to handle the
+;; various options.
+;;
+
+(defcustom hubi-meson-paths
+  '("pyvenv/bin/meson"
+    ".venv/bin/meson"
+    "venv/bin/meson"
+    "bin/meson"
+    "build/meson")
+"List of relative paths to search for meson executable.
+Paths are relative to the base directory and are checked in order.
+Common locations include virtual environment bin directories and
+build directories without deep tree traversal."
+ :type '(repeat string)
+ :group 'compile)
+
+
+;; Deals with meson binaries embedded in the build
+(defun hubi--find-meson-executable (directory)
+  "Find meson executable in DIRECTORY, checking paths from `hubi-meson-paths'."
+  (let ((meson-path
+         (cl-some (lambda (path)
+                    (let ((full-path (expand-file-name path directory)))
+                      (when (and (file-executable-p full-path)
+                                 (not (file-directory-p full-path)))
+                        full-path)))
+                  hubi-meson-paths)))
+    (if meson-path
+        (file-relative-name meson-path directory)
+      nil)))
+
+;; If we don't find an embedded meson binary then check for the
+;; existing of meson.stamp and availability of meson in the PATH.
+(defun hubi--meson-commands (bld-dir)
+  "Search for meson in `BLD-DIR' and return the various commands we
+can execute if we find it."
+  (let ((meson (hubi--find-meson-executable bld-dir)))
+    ;; fallback and check for stamp and meson in PATH
+    (unless meson
+      (setq meson (and (file-exists-p (expand-file-name "meson.stamp"
+                                                bld-dir))
+                       (executable-find "meson"))))
+    ;; now offer multiple commands
+    (when meson
+      (list (format "%s compile" meson)
+            (format "%s test" meson)
+            (format "%s test --benchmark" meson)))))
+
+;; For tests we should extract the suite names and use that
+(defun hubi--meson-targets (cmd bld-dir &optional env)
+  "Return a list of potential targets for the meson `CMD' type."
+  (let* ((jq ".[].name")
+         (introspect-arg
+          (cond
+           ((hubi--string-contains-p "compile" cmd)
+            "--targets")
+           ;; benchmark is a subset of tests command so check first
+           ((hubi--string-contains-p "benchmark" cmd)
+            "--benchmarks")
+           ((hubi--string-contains-p "test" cmd)
+            ;; for tests just list the suites
+            (setq jq ".[].suite[]")
+            "--tests")))
+         (meson-exec (car (split-string cmd " ")))
+         (full-command
+          (format "cd %s && %s introspect %s | jq -r '%s'"
+                  bld-dir meson-exec introspect-arg jq)))
+    (when introspect-arg
+      (split-string
+       (shell-command-to-string full-command)
+       "\n" t))))
+
+(defun hubi--meson-formatter (cmd build-dir &optional target env)
+  "Format the meson build `CMD' with `BUILD-DIR' with optional `TARGET' and `ENV'.
+
+We special case the test command to run a suite instead."
+  (cond
+   ((hubi--string-contains-p "compile" cmd)
+    (format "cd %s && %s %s" build-dir cmd target))
+   ;; benchmark is a subset of tests command so check first
+   ((hubi--string-contains-p "benchmark" cmd)
+    (format "cd %s && %s %s" build-dir cmd target))
+   ((hubi--string-contains-p "test" cmd)
+    (format "cd %s && %s --suite %s" build-dir cmd target))
+   (t
+    (format "cd %s && %s %s" build-dir cmd target))))
+
+;; Configuration
 
 (defvar hubi--target-functions
   '(("make" . hubi--make-targets)
-    ("ninja" . hubi--ninja-targets))
+    ("ninja" . hubi--ninja-targets)
+    ("meson" . hubi--meson-targets))
   "Alist of compiler tool names and their target helper functions.
 The functions take the build directory as a single argument.")
 
 
 (defcustom hubi-build-tool-helpers
   '(hubi--make-commands
-    hubi--ninja-commands)
+    hubi--ninja-commands
+    hubi--meson-commands)
   "Functions to determine the available build tools.
 
-Each function on this list is called in turn with a list of
-  directories to scan. If signs of the build tool are found it returns
-  a list of commands."
+Each function on this list is called in turn with the current build
+directory. If signs of the build tool are found it returns a list of
+commands."
   :type '(repeat (function))
   :group 'compile)
 
@@ -335,7 +441,7 @@ N in your system."
   :type 'string
   :group 'compile)
 
-(defun hubi--make-formatter (build-dir &optional target env)
+(defun hubi--make-formatter (cmd build-dir &optional target env)
   "Format make command with optional parallelism."
   (format "make %s -C %s %s %s"
           hubi-make-args
@@ -347,7 +453,8 @@ N in your system."
 
 (defvar hubi--format-functions
   '(("make" . hubi--make-formatter)
-    ("ninja" . "ninja -C %s %s"))
+    ("ninja" . "ninja -C %s %s")
+    ("meson" . hubi--meson-formatter))
   "Alist of compiler tool names and their format functions/strings.
 The functions take the build directory as a single argument.")
 
@@ -357,9 +464,9 @@ formatted string. Lookup the helper from
   `hubi--format-functions' which is an alist of the form
   indexed by `tool' and returning either a format string or a function
   that will return a formatted string when called with build-dir"
-  (let ((formatter (cdr (assoc cmd hubi--format-functions))))
+  (let ((formatter (cdr (assoc cmd hubi--format-functions #'hubi--string-contains-p))))
     (if (functionp formatter)
-        (funcall formatter dir target env)
+        (funcall formatter cmd dir target env)
       (format formatter dir target env))))
 
 ;;
@@ -439,13 +546,15 @@ ARGS used for transient arguments."
 ARGS used for transient arguments."
   :transient t
   (interactive)
-  (let ((helper (cdr (assoc hubi-invocation
-                       hubi--target-functions))))
+  (let ((helper (cdr (assoc
+                      hubi-invocation
+                      hubi--target-functions
+                      #'hubi--string-contains-p))))
     (setq hubi-target
           (if helper
               (completing-read
                "Command: "
-               (funcall helper hubi-directory hubi-env)
+               (funcall helper hubi-invocation hubi-directory hubi-env)
                nil t hubi-target-history)
             "all"))))
 
