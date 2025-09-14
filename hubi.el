@@ -29,6 +29,7 @@
 (require 'cl-lib)
 (require 'files-x)
 (require 'transient)
+(require 'rx)
 
 (defgroup hubi nil
   "Run build tool via M-x compile."
@@ -349,12 +350,60 @@ We special case the test command to run a suite instead."
    (t
     (format "cd %s && %s %s" build-dir cmd target))))
 
+;; Cargo handling
+;;
+;; The rust cargo build tool is very flexible.
+
+
+;; We need to look for the tell tale signs of a rust environment.
+;; Namely is there a Cargo.toml
+(defun hubi--cargo-commands (bld-dir)
+  "Search for Cargo.toml in root of project, ignore `BLD-DIR'."
+  (let* ((srcdir (hubi--compile-root))
+         (cargo-toml (file-exists-p (expand-file-name "Cargo.toml"
+                                                srcdir))))
+    (when cargo-toml
+      (list "cargo build"
+            "cargo test"
+            "cargo bench"))))
+
+(defcustom hubi-cargo-pattern
+  (rx (one-or-more not-newline) "/"
+      (group-n 1
+        (one-or-more (and (not "/") (not "#"))))
+      "#"
+      (one-or-more not-newline))
+  "Regexp for matching the names of cargo workspace_members."
+  :type 'regexp)
+
+(defun hubi--cargo-targets (cmd bld-dir &optional env)
+  "Return a list of potential targets for the cargo `CMD' type."
+  (let ((targets))
+    (with-temp-buffer
+      (insert (shell-command-to-string "cargo metadata --format-version 1 --no-deps | jq -r '.workspace_members[]'"))
+      (goto-char (point-min))
+      (while (re-search-forward hubi-cargo-pattern nil t)
+        (push (split-string (match-string-no-properties 1)) targets)))
+    (append '("") (sort (apply #'nconc targets) #'string-lessp))))
+
+(defun hubi--cargo-formatter (cmd bld &optional target env)
+  "Format cargo `CMD'. Ignore `BLD'."
+  (let ((cargo (if (or (null target) (string= target ""))
+                   (format "%s" cmd)
+                 (format "%s -p %s" cmd target))))
+    (if env
+        (format "env %s %s"
+                (mapconcat 'identity env " ")
+                cargo)
+      cargo)))
+
 ;; Configuration
 
 (defvar hubi--target-functions
   '(("make" . hubi--make-targets)
     ("ninja" . hubi--ninja-targets)
-    ("meson" . hubi--meson-targets))
+    ("meson" . hubi--meson-targets)
+    ("cargo" . hubi--cargo-targets))
   "Alist of compiler tool names and their target helper functions.
 The functions take the build directory as a single argument.")
 
@@ -362,7 +411,8 @@ The functions take the build directory as a single argument.")
 (defcustom hubi-build-tool-helpers
   '(hubi--make-commands
     hubi--ninja-commands
-    hubi--meson-commands)
+    hubi--meson-commands
+    hubi--cargo-commands)
   "Functions to determine the available build tools.
 
 Each function on this list is called in turn with the current build
@@ -453,7 +503,8 @@ N in your system."
 (defvar hubi--format-functions
   '(("make" . hubi--make-formatter)
     ("ninja" . "ninja -C %s %s")
-    ("meson" . hubi--meson-formatter))
+    ("meson" . hubi--meson-formatter)
+    ("cargo" . hubi--cargo-formatter))
   "Alist of compiler tool names and their format functions/strings.
 The functions take the build directory as a single argument.")
 
