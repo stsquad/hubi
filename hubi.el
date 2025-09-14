@@ -411,9 +411,8 @@ ARGS used for transient arguments."
   :transient t
   (interactive (list (transient-args transient-current-command)))
   (let ((new-env
-         (completing-read "Env: " hubi-env-history nil
-                          #'hubi-env-p nil
-                          'hubi-env-history)))
+         (completing-read "Env: " hubi-env-history #'hubi-env-p nil
+                          nil 'hubi-env-history)))
     (when new-env
       (push new-env hubi-env))))
 
