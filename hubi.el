@@ -207,7 +207,7 @@ pristine and being used for multiple build trees."
                  call-process
                  "make"
                  nil t nil
-                 "-C" build-dir "-nqp" env))
+                 "-C" (or build-dir default-directory) "-nqp" env))
            targets)
       (if (or (not (numberp res)) (> res 1))
           (list "")
