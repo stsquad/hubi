@@ -1,4 +1,4 @@
-;;; hubi --- Homogeneous Unified Builder Interface
+;;; hubi --- Homogeneous Unified Builder Interface -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2014 Alex Bennée
 ;;
@@ -32,7 +32,7 @@
 (require 'rx)
 
 (defgroup hubi nil
-  "Run build tool via M-x compile."
+  "Smart build tool invocation via `compile'."
   :group 'tools
   :group 'processes
   :group 'compilation)
@@ -196,7 +196,7 @@ invocation if we find something."
 ;; relies on GNUMake having the following return codes:
 ;;   0 = no-rebuild, -q & 1 needs rebuild, 2 error
 (defun hubi--make-targets (cmd build-dir &optional env)
-  "Return a list of Make targets for DIR.
+  "Return a list of `CMD' targets in `BUILD-DIR'.
 
 Return a single blank target (so we invoke the default target)
 if Make exits with an error.  This might happen because some sort
