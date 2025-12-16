@@ -646,6 +646,14 @@ ARGS used for transient arguments."
        (with-current-buffer (get-file-buffer dir-local)
          (setq-local buffer-save-without-query t))))
 
+(defun hubi--maybe-hack-dir-locals ()
+  "Load dir-locals if no hubi variables have local values."
+  (when (not (or (local-variable-p 'hubi-directory)
+                 (local-variable-p 'hubi-invocation)
+                 (local-variable-p 'hubi-target)
+                 (local-variable-p 'hubi-env)))
+    (hack-local-variables)))
+
 ;;
 ;; These define the immediate helpers and actions for the transient
 ;; defined bellow. All the options will eventually form to a command
@@ -722,7 +730,11 @@ ARGS used for transient arguments."
    ]]
 
   [["Actions"
-    ("C-c C-c" "Compile" hubi--do-compile)]])
+    ("C-c C-c" "Compile" hubi--do-compile)]]
+
+  (interactive)
+  (hubi--maybe-hack-dir-locals)
+  (transient-setup 'hubi))
 
 (provide 'hubi)
 ;;; hubi.el ends here
