@@ -1,0 +1,24 @@
+#+TITLE: Hubi Tasks
+
+* Project Housekeeping [0/6]
+ - [ ] Update Copyright year in `hubi.el` to 2025
+ - [ ] Remove hardcoded `my-core-count` from `hubi-make-args`, use `num-processors` from =subr.el= instead.
+ - [ ] Fix docstring indentation and trailing whitespace in `hubi.el`
+ - [ ] Check for `jq` dependency - Meson and Cargo target discovery currently relies on `jq`. We should check for its existence and perhaps provide a fallback or a clearer error message.
+ - [ ] Fix typos in `README.org` - "quite" -> "quit", ".dir-locals2." -> ".dir-locals-2.el".
+
+* Code Improvements [0/4]
+ - [ ] Refactor `hubi--string-contains-p` usage - Check if `assoc-default` or a more standard `assoc` with a custom predicate is cleaner.
+ - [ ] Improve dependency handling - Explicitly handle `projectile` or `project.el` if they are intended to be optional or required.
+ - [ ] Evaluate CMake support - Currently supports Make, Ninja, Meson, Cargo.
+ - [ ] Audit `lexical-binding: t` - Ensure it's working as expected and no free variables are accidentally used.
+
+* Documentation [0/3]
+ - [ ] Update Installation instructions - Mention `transient` as a dependency.
+ - [ ] Document `jq` requirement - Specify which build systems require `jq` for target discovery.
+ - [ ] Add "Supported Build Systems" section - List Make, Ninja, Meson, Cargo and any specific requirements for each.
+
+* Packaging [0/3]
+ - [ ] Add `Package-Requires` header to `hubi.el`
+ - [ ] Add `Version` header (0.1.0)
+ - [ ] Clean up repository - add hubi.elc to `.gitignore`.
