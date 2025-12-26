@@ -1,6 +1,6 @@
 ;;; hubi --- Homogeneous Unified Builder Interface -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2014 Alex Bennée
+;; Copyright (C) 2025 Alex Bennée
 ;;
 ;; Author: Alex Bennée <alex@bennee.com>
 ;;

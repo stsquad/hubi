@@ -1,7 +1,7 @@
 #+TITLE: Hubi Tasks
 
-* Project Housekeeping [0/6]
- - [ ] Update Copyright year in `hubi.el` to 2025
+* Project Housekeeping [1/5]
+ - [X] Update Copyright year in `hubi.el` to 2025
  - [ ] Remove hardcoded `my-core-count` from `hubi-make-args`, use `num-processors` from =subr.el= instead.
  - [ ] Fix docstring indentation and trailing whitespace in `hubi.el`
  - [ ] Check for `jq` dependency - Meson and Cargo target discovery currently relies on `jq`. We should check for its existence and perhaps provide a fallback or a clearer error message.
