@@ -421,20 +421,6 @@ commands."
   :type '(repeat (function))
   :group 'compile)
 
-
-;; We probe the current build directory, failing that the project root
-(defun hubi--get-tools ()
-  "Return a list of commands and tools we could use based on probing
-the current build directory or project root."
-  (let ((bld-dir (or hubi-directory (hubi--compile-root)))
-        (tools))
-    (dolist (helper hubi-build-tool-helpers)
-      (when (fboundp helper)
-        (let ((result (funcall helper bld-dir)))
-          (when result
-            (setq tools (append tools result))))))
-    (delete-dups tools)))
-
 ;;
 ;; Environment handling helpers
 ;;
@@ -520,34 +506,6 @@ formatted string. Lookup the helper from
       (format formatter dir target env))))
 
 ;;
-;; Compile command handling
-;;
-;; The command in this case could be a direct compiler invocation to a
-;; invoking a build tool.
-;;
-
-; nb: use -invocation so variable not picked up by risky-local-variable-p
-(defvar hubi-invocation "make"
-  "The command we use to compile be it direct compiler or build tool.")
-(make-variable-buffer-local 'hubi-invocation)
-(put 'hubi-invocation 'permanent-local t)
-
-(defvar hubi-invocation-history nil
-  "Command history for `hubi'")
-
-(transient-define-suffix hubi-get-tool (&optional args)
-  "Read the build command we are going to use.
-ARGS used for transient arguments."
-  :transient t
-  (interactive (list (transient-args transient-current-command)))
-  (let ((cmd (completing-read "Command: "
-                              (hubi--get-tools)
-                              nil nil nil
-                              'hubi-invocation-history)))
-    (when cmd
-      (setq hubi-invocation cmd))))
-
-;;
 ;; Build directory handling
 ;;
 
@@ -575,6 +533,47 @@ ARGS used for transient arguments."
            'hubi-directory-history)))
     (when build-dir
       (setq hubi-directory build-dir))))
+
+;;
+;; Compile command handling
+;;
+;; The command in this case could be a direct compiler invocation to a
+;; invoking a build tool.
+;;
+
+; nb: use -invocation so variable not picked up by risky-local-variable-p
+(defvar hubi-invocation "make"
+  "The command we use to compile be it direct compiler or build tool.")
+(make-variable-buffer-local 'hubi-invocation)
+(put 'hubi-invocation 'permanent-local t)
+
+(defvar hubi-invocation-history nil
+  "Command history for `hubi'.")
+
+;; We probe the current build directory, failing that the project root
+(defun hubi--get-tools ()
+  "Return a list of commands and tools we could use based on probing
+the current build directory or project root."
+  (let ((bld-dir (or hubi-directory (hubi--compile-root)))
+        (tools))
+    (dolist (helper hubi-build-tool-helpers)
+      (when (fboundp helper)
+        (let ((result (funcall helper bld-dir)))
+          (when result
+            (setq tools (append tools result))))))
+    (delete-dups tools)))
+
+(transient-define-suffix hubi-get-tool (&optional args)
+  "Read the build command we are going to use.
+ARGS used for transient arguments."
+  :transient t
+  (interactive (list (transient-args transient-current-command)))
+  (let ((cmd (completing-read "Command: "
+                              (hubi--get-tools)
+                              nil nil nil
+                              'hubi-invocation-history)))
+    (when cmd
+      (setq hubi-invocation cmd))))
 
 ;;
 ;; Target handling
