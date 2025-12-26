@@ -3,6 +3,7 @@
 ;; Copyright (C) 2025 Alex Bennée
 ;;
 ;; Author: Alex Bennée <alex@bennee.com>
+;; Package-Requires: ((emacs "28.1") (transient "0.4.0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -718,9 +719,6 @@ ARGS used for transient arguments."
 ;;;###autoload (autoload 'hubi "hubi" nil t)
 (transient-define-prefix hubi ()
   "Compile project with a transient interface."
-
-  ;; Add refresh-suffixes to update the display when values change
-  :refresh-suffixes t
 
   ["Compile"
    :description hubi--show-current-compile
