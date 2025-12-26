@@ -1,11 +1,11 @@
 #+TITLE: Hubi Tasks
 
-* Project Housekeeping [1/5]
+* Project Housekeeping [5/5]
  - [X] Update Copyright year in `hubi.el` to 2025
- - [ ] Remove hardcoded `my-core-count` from `hubi-make-args`, use `num-processors` from =subr.el= instead.
- - [ ] Fix docstring indentation and trailing whitespace in `hubi.el`
- - [ ] Check for `jq` dependency - Meson and Cargo target discovery currently relies on `jq`. We should check for its existence and perhaps provide a fallback or a clearer error message.
- - [ ] Fix typos in `README.org` - "quite" -> "quit", ".dir-locals2." -> ".dir-locals-2.el".
+ - [X] Remove hardcoded `my-core-count` from `hubi-make-args`, use `num-processors` from =subr.el= instead.
+ - [X] Fix docstring indentation and trailing whitespace in `hubi.el`
+ - [X] Check for `jq` dependency - Meson and Cargo target discovery currently relies on `jq`. We should check for its existence and perhaps provide a fallback or a clearer error message.
+ - [X] Fix typos in `README.org` - "quite" -> "quit", ".dir-locals2." -> ".dir-locals-2.el".
 
 * Code Improvements [0/4]
  - [ ] Refactor `hubi--string-contains-p` usage - Check if `assoc-default` or a more standard `assoc` with a custom predicate is cleaner.

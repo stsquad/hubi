@@ -37,6 +37,12 @@
   :group 'processes
   :group 'compilation)
 
+(defun hubi--check-jq ()
+  "Check if jq is available on the system."
+  (unless (executable-find "jq")
+    (error "The `jq' utility is required for target discovery but was not found.
+Please install it using your package manager.")))
+
 ;; c.f. counsel--dominating-file
 (defun hubi--dominating-file (file &optional dir)
   "Look up directory hierarchy for FILE, starting in DIR.
@@ -118,7 +124,7 @@ The root is determined by `hubi--root-functions'."
 (defun hubi--dir-local-file()
   "Return the file for the projects local settings.
 We take care to put our dir locals in the project root. We rely on the
-  normal .dir-locals code to load the values for other files in the project."
+normal .dir-locals code to load the values for other files in the project."
   (concat (hubi--compile-root) ".dir-locals-2.el"))
 
 ;;
@@ -130,7 +136,7 @@ We take care to put our dir locals in the project root. We rely on the
   "List of potential build directory names to check by
 `hubi--find-build-subdir'. The first one
 found will be returned. Change the order or add entries to reflect
-  your preferred naming style for build directories."
+your preferred naming style for build directories."
   :type '(repeat directory)
   :group 'compile)
 
@@ -187,10 +193,10 @@ for sub-string matching in the tool name."
 (defun hubi--make-commands (bld-dir)
   "Scan the BLD_DIR signs of a Makefile and the correct make
 invocation if we find something."
-    (if (directory-files
-         bld-dir nil hubi-make-pattern t)
-        (list "make")
-      nil))
+  (if (directory-files
+       bld-dir nil hubi-make-pattern t)
+      (list "make")
+    nil))
 
 ;; This is loosely based on the Bash Make completion code which
 ;; relies on GNUMake having the following return codes:
@@ -229,11 +235,11 @@ pristine and being used for multiple build trees."
 
 (defun hubi--ninja-commands (bld-dir)
   "Scan `BLD-DIR' for signs of a Ninja build and return
-  potential ninja commands if we find something."
-    (if (directory-files
-         bld-dir nil hubi-ninja-pattern t)
-        (list "ninja")
-      nil))
+potential ninja commands if we find something."
+  (if (directory-files
+       bld-dir nil hubi-ninja-pattern t)
+      (list "ninja")
+    nil))
 
 (defun hubi--ninja-targets (cmd build-dir &optional env)
   "Return a list of Make targets for DIR.
@@ -314,6 +320,7 @@ can execute if we find it."
 ;; For tests we should extract the suite names and use that
 (defun hubi--meson-targets (cmd bld-dir &optional env)
   "Return a list of potential targets for the meson `CMD' type."
+  (hubi--check-jq)
   (let* ((jq ".[].name")
          (introspect-arg
           (cond
@@ -378,6 +385,7 @@ We special case the test command to run a suite instead."
 
 (defun hubi--cargo-targets (cmd bld-dir &optional env)
   "Return a list of potential targets for the cargo `CMD' type."
+  (hubi--check-jq)
   (let ((targets))
     (with-temp-buffer
       (insert (shell-command-to-string "cargo metadata --format-version 1 --no-deps | jq -r '.workspace_members[]'"))
@@ -469,7 +477,7 @@ ARGS used for transient arguments."
 ;; makes up the compile command.
 ;;
 
-(defcustom hubi-make-args (format "-j%d -k " (+ 1 my-core-count))
+(defcustom hubi-make-args (format "-j%d -k " (+ 1 (num-processors)))
   "Additional arguments for make.
 You may, for example, want to add \"-jN\" for the number of cores
 N in your system."
@@ -515,7 +523,7 @@ formatted string. Lookup the helper from
 (put 'hubi-directory 'permanent-local t)
 
 (defvar hubi-directory-history nil
-  "Build directory history for `hubi'")
+  "Build directory history for `hubi'.")
 
 (transient-define-suffix hubi-get-dir (&optional args)
   "Read the directory command we are going to build in.
@@ -588,7 +596,7 @@ ARGS used for transient arguments."
 (put 'hubi-target 'permanent-local t)
 
 (defvar hubi-target-history nil
-  "Target history for `hubi'")
+  "Target history for `hubi'".)
 
 (transient-define-suffix hubi-get-target (&optional args)
   "Read the build command we are going to use.

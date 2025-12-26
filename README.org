@@ -9,7 +9,7 @@ It presents transient interface when you can select the build tool,
 build directory and target before invoking the build. It tries to
 probe for build configuration so it can offer a narrowing list of
 targets. The current build and history is stored in a per-project
-.dir-locals2. file.
+.dir-locals-2.el file.
 
 * History
 
@@ -42,7 +42,7 @@ presented with an interface like this:
 [[file:docs/screenshot.png]]
 
 Once you have selected the target and setup `C-c C-c` will invoke the
-build tool. `C-g` will quite the interface.   
+build tool. `C-g` will quit the interface.
 
 
 
