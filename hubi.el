@@ -596,7 +596,7 @@ ARGS used for transient arguments."
 (put 'hubi-target 'permanent-local t)
 
 (defvar hubi-target-history nil
-  "Target history for `hubi'".)
+  "Target history for `hubi'.")
 
 (transient-define-suffix hubi-get-target (&optional args)
   "Read the build command we are going to use.
