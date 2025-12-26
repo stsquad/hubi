@@ -280,7 +280,9 @@ pristine and being used for multiple build trees."
     ".venv/bin/meson"
     "venv/bin/meson"
     "bin/meson"
-    "build/meson")
+    "build/meson"
+    ; finally the system meson
+    "/usr/bin/meson")
 "List of relative paths to search for meson executable.
 Paths are relative to the base directory and are checked in order.
 Common locations include virtual environment bin directories and
