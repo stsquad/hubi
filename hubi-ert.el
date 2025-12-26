@@ -6,6 +6,8 @@
 (ert-deftest hubi-test-string-contains-p ()
   (should (hubi--string-contains-p "make" "make -j8"))
   (should (hubi--string-contains-p "meson" "meson compile"))
+  (should (hubi--string-contains-p "compile" "meson compile"))
+  (should (hubi--string-contains-p "test" "meson test --suite unit"))
   (should (not (hubi--string-contains-p "make" "ninja"))))
 
 (ert-deftest hubi-test-format-compile-make ()

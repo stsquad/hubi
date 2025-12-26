@@ -18,7 +18,7 @@
  - [ ] Document `jq` requirement - Specify which build systems require `jq` for target discovery.
  - [ ] Add "Supported Build Systems" section - List Make, Ninja, Meson, Cargo and any specific requirements for each.
 
-* Packaging [0/3]
- - [ ] Add `Package-Requires` header to `hubi.el`
+* Packaging [1/3]
+ - [X] Add `Package-Requires` header to `hubi.el`
  - [ ] Add `Version` header (0.1.0)
  - [ ] Clean up repository - add hubi.elc to `.gitignore`.

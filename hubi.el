@@ -169,7 +169,7 @@ tree."
         (hubi--get-build-subdirs blddir)
       (list srcdir))))
 
-;;
+;; Note: not the same as string-prefix-p
 (defun hubi--string-contains-p (elem key)
   "Check if elem (from the alist) is contained in the key. This allows
 for sub-string matching in the tool name."
