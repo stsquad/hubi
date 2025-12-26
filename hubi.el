@@ -45,7 +45,7 @@
 (defun hubi--check-jq ()
   "Check if jq is available on the system."
   (unless (executable-find "jq")
-    (error "The `jq' utility is required for target discovery but was not found.
+    (error "The `jq' utility is required for target discovery (Meson/Cargo) but was not found.
 Please install it using your package manager.")))
 
 ;; c.f. counsel--dominating-file
@@ -294,16 +294,12 @@ build directories without deep tree traversal."
 ;; Deals with meson binaries embedded in the build
 (defun hubi--find-meson-executable (directory)
   "Find meson executable in DIRECTORY, checking paths from `hubi-meson-paths'."
-  (let ((meson-path
-         (cl-some (lambda (path)
-                    (let ((full-path (expand-file-name path directory)))
-                      (when (and (file-executable-p full-path)
-                                 (not (file-directory-p full-path)))
-                        full-path)))
-                  hubi-meson-paths)))
-    (if meson-path
-        (file-relative-name meson-path directory)
-      nil)))
+  (cl-some (lambda (path)
+             (let ((full-path (expand-file-name path directory)))
+               (when (and (file-executable-p full-path)
+                          (not (file-directory-p full-path)))
+                 full-path)))
+           hubi-meson-paths))
 
 ;; If we don't find an embedded meson binary then check for the
 ;; existing of meson.stamp and availability of meson in the PATH.
@@ -318,9 +314,10 @@ can execute if we find it."
                        (executable-find "meson"))))
     ;; now offer multiple commands
     (when meson
-      (list (format "%s compile" meson)
-            (format "%s test" meson)
-            (format "%s test --benchmark" meson)))))
+      (let ((meson (shell-quote-argument meson)))
+        (list (format "%s compile" meson)
+              (format "%s test" meson)
+              (format "%s test --benchmark" meson))))))
 
 ;; For tests we should extract the suite names and use that
 (defun hubi--meson-targets (cmd bld-dir &optional env)
@@ -338,7 +335,7 @@ can execute if we find it."
             ;; for tests just list the suites
             (setq jq ".[].suite[]")
             "--tests")))
-         (meson-exec (car (split-string cmd " ")))
+         (meson-exec (shell-quote-argument (car (split-string-and-unquote cmd))))
          (full-command
           (format "cd %s && %s introspect %s | jq -r '%s'"
                   bld-dir meson-exec introspect-arg jq)))
