@@ -138,9 +138,8 @@ normal .dir-locals code to load the values for other files in the project."
 
 (defcustom hubi-build-directories
   '("build" "builds" "bld" ".build")
-  "List of potential build directory names to check by
-`hubi--find-build-subdir'. The first one
-found will be returned. Change the order or add entries to reflect
+  "List of potential build directory names to check by `hubi--find-build-subdir'.
+The first one found will be returned. Change the order or add entries to reflect
 your preferred naming style for build directories."
   :type '(repeat directory)
   :group 'compile)
