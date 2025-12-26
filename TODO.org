@@ -7,18 +7,18 @@
  - [X] Check for `jq` dependency - Meson and Cargo target discovery currently relies on `jq`. We should check for its existence and perhaps provide a fallback or a clearer error message.
  - [X] Fix typos in `README.org` - "quite" -> "quit", ".dir-locals2." -> ".dir-locals-2.el".
 
-* Code Improvements [0/4]
- - [ ] Refactor `hubi--string-contains-p` usage - Check if `assoc-default` or a more standard `assoc` with a custom predicate is cleaner.
- - [ ] Improve dependency handling - Explicitly handle `projectile` or `project.el` if they are intended to be optional or required.
+* Code Improvements [3/4]
+ - [X] Refactor `hubi--string-contains-p` usage - Check if `assoc-default` or a more standard `assoc` with a custom predicate is cleaner.
+ - [X] Improve dependency handling - Explicitly handle `projectile` or `project.el` if they are intended to be optional or required.
+ - [X] Audit `lexical-binding: t` - Ensure it's working as expected and no free variables are accidentally used.
  - [ ] Evaluate CMake support - Currently supports Make, Ninja, Meson, Cargo.
- - [ ] Audit `lexical-binding: t` - Ensure it's working as expected and no free variables are accidentally used.
 
-* Documentation [0/3]
- - [ ] Update Installation instructions - Mention `transient` as a dependency.
- - [ ] Document `jq` requirement - Specify which build systems require `jq` for target discovery.
- - [ ] Add "Supported Build Systems" section - List Make, Ninja, Meson, Cargo and any specific requirements for each.
+* Documentation [3/3]
+ - [X] Update Installation instructions - Mention `transient` as a dependency.
+ - [X] Document `jq` requirement - Specify which build systems require `jq` for target discovery.
+ - [X] Add "Supported Build Systems" section - List Make, Ninja, Meson, Cargo and any specific requirements for each.
 
-* Packaging [1/3]
+* Packaging [3/3]
  - [X] Add `Package-Requires` header to `hubi.el`
- - [ ] Add `Version` header (0.1.0)
- - [ ] Clean up repository - add hubi.elc to `.gitignore`.
+ - [X] Add `Version` header (0.1.0)
+ - [X] Clean up repository - add hubi.elc to `.gitignore`.

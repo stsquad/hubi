@@ -3,6 +3,7 @@
 ;; Copyright (C) 2025 Alex Bennée
 ;;
 ;; Author: Alex Bennée <alex@bennee.com>
+;; Version: 0.1.0
 ;; Package-Requires: ((emacs "28.1") (transient "0.4.0"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -31,6 +32,9 @@
 (require 'files-x)
 (require 'transient)
 (require 'rx)
+(require 'project)
+
+(declare-function projectile-project-root "projectile")
 
 (defgroup hubi nil
   "Smart build tool invocation via `compile'."
@@ -170,10 +174,9 @@ tree."
       (list srcdir))))
 
 ;; Note: not the same as string-prefix-p
-(defun hubi--string-contains-p (elem key)
-  "Check if elem (from the alist) is contained in the key. This allows
-for sub-string matching in the tool name."
-  (string-match-p (regexp-quote elem) key))
+(defun hubi--string-contains-p (needle haystack)
+  "Return non-nil if NEEDLE is a sub-string of HAYSTACK."
+  (string-search needle haystack))
 
 ;;
 ;; Tool and Target helpers
@@ -509,10 +512,14 @@ formatted string. Lookup the helper from
   `hubi--format-functions' which is an alist of the form
   indexed by `tool' and returning either a format string or a function
   that will return a formatted string when called with build-dir"
-  (let ((formatter (cdr (assoc cmd hubi--format-functions #'hubi--string-contains-p))))
-    (if (functionp formatter)
-        (funcall formatter cmd dir target env)
-      (format formatter dir target env))))
+  (let ((formatter (assoc-default cmd hubi--format-functions #'hubi--string-contains-p)))
+    (cond
+     ((functionp formatter)
+      (funcall formatter cmd dir target env))
+     ((stringp formatter)
+      (format formatter dir target env))
+     (t
+      (error "No formatter found for command: %s" cmd)))))
 
 ;;
 ;; Build directory handling
@@ -604,10 +611,9 @@ ARGS used for transient arguments."
 ARGS used for transient arguments."
   :transient t
   (interactive)
-  (let ((helper (cdr (assoc
-                      hubi-invocation
-                      hubi--target-functions
-                      #'hubi--string-contains-p))))
+  (let ((helper (assoc-default hubi-invocation
+                               hubi--target-functions
+                               #'hubi--string-contains-p)))
     (setq hubi-target
           (if helper
               (completing-read
@@ -651,7 +657,7 @@ ARGS used for transient arguments."
               'add-or-replace
               dir-local))))
          hubi-project-variable-list)
-       (with-current-buffer (get-file-buffer dir-local)
+       (with-current-buffer (find-file-noselect dir-local)
          (setq-local buffer-save-without-query t))))
 
 (defun hubi--maybe-hack-dir-locals ()
