@@ -1,0 +1,4 @@
+Some header info
+Invocation command line was
+
+  $ ../configure --disable-debug --enable-optimize

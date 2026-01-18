@@ -2,6 +2,7 @@
 
 (require 'ert)
 (require 'hubi)
+(require 'hubi-configure)
 
 (ert-deftest hubi-test-string-contains-p ()
   (should (hubi--string-contains-p "make" "make -j8"))
@@ -77,6 +78,30 @@ The directory is deleted after BODY finishes."
           (let ((dirs (hubi-get-build-directories)))
             (should (member b1 dirs))
             (should (= 1 (length dirs)))))))))
+
+;;
+;; hubi-configure tests
+;;
+
+(ert-deftest hubi-test-extract-configure-args-autoconf ()
+  (let* ((test-dir (expand-file-name "tests/autoconf"))
+         (args (hubi-configure--extract-configure-args test-dir)))
+    (should
+     (equal
+      '("--prefix=/usr" "--enable-feature" "--with-lib=/opt/lib")
+      args))))
+
+(ert-deftest hubi-test-extract-configure-args-generic ()
+  (let* ((test-dir (expand-file-name "tests/generic"))
+         (args (hubi-configure--extract-configure-args test-dir)))
+    (should (equal '("--disable-debug" "--enable-optimize") args))))
+
+(ert-deftest hubi-test-extract-configure-args-config-log ()
+  (let* ((test-dir (expand-file-name "tests/config-log"))
+         (args (hubi-configure--extract-configure-args test-dir)))
+    (should (equal '("--disable-docs" "--disable-tools" "--extra-ldflags=-gsplit-dwarf") args))))
+
+
 
 (provide 'hubi-ert)
 ;;; hubi-ert.el ends here

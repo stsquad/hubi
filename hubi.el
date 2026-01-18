@@ -33,6 +33,7 @@
 (require 'transient)
 (require 'rx)
 (require 'project)
+(require 'hubi-configure)
 
 (declare-function projectile-project-root "projectile")
 
@@ -638,7 +639,8 @@ ARGS used for transient arguments."
   '(hubi-invocation
     hubi-directory
     hubi-target
-    hubi-env)
+    hubi-env
+    hubi-configure-options)
   "List of variables we save in the project.")
 
 (defun hubi--save-project-vars ()
