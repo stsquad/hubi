@@ -1,6 +1,6 @@
 ;;; hubi --- Homogeneous Unified Builder Interface -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2025 Alex Bennée
+;; Copyright (C) 2025-2026 Alex Bennée
 ;;
 ;; Author: Alex Bennée <alex@bennee.com>
 ;; Version: 0.1.0
@@ -12,6 +12,8 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
+;;
+;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;
 ;;; Commentary:
 ;;

@@ -1,5 +1,7 @@
 ;;; hubi-ert.el --- Tests for hubi -*- lexical-binding: t -*-
 
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 (require 'ert)
 (require 'hubi)
 (require 'hubi-configure)
