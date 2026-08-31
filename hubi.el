@@ -736,8 +736,10 @@ ARGS used for transient arguments."
 
    ["Environment"
     ("a" "Add Env Var" hubi-add-env)
-    ("d" "Del Env Var" hubi-del-env)
+    ("d" "Del Env Var" hubi-del-env)]
 
+   ["Extra Actions"
+    ("x" "Configure" hubi-configure :transient nil)
    ]]
 
   [["Actions"
