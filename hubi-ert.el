@@ -101,7 +101,18 @@ The directory is deleted after BODY finishes."
          (args (hubi-configure--extract-configure-args test-dir)))
     (should (equal '("--disable-docs" "--disable-tools" "--extra-ldflags=-gsplit-dwarf") args))))
 
+(ert-deftest hubi-test-configure-edit-option ()
+  (let ((hubi-configure-options '("--enable-feature" "--prefix=/usr")))
+    (cl-letf (((symbol-function 'completing-read) (lambda (_prompt _choices &rest _args) "--enable-feature"))
+              ((symbol-function 'read-string) (lambda (_prompt initial-input &rest _args)
+                                                (should (equal initial-input "--enable-feature"))
+                                                "--disable-feature")))
+      (call-interactively 'hubi-configure-edit-option)
+      (should (equal '("--disable-feature" "--prefix=/usr") hubi-configure-options)))))
 
+(ert-deftest hubi-test-configure-edit-option-empty ()
+  (let ((hubi-configure-options nil))
+    (should-error (call-interactively 'hubi-configure-edit-option))))
 
 (provide 'hubi-ert)
 ;;; hubi-ert.el ends here

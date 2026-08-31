@@ -266,6 +266,20 @@ Iterates through `hubi-configure-extract-strategies' until a result is found."
   (let ((opt (completing-read "Remove Option: " hubi-configure-options nil t)))
     (setq hubi-configure-options (delete opt hubi-configure-options))))
 
+(transient-define-suffix hubi-configure-edit-option ()
+  "Edit an existing configuration option."
+  :description "edit option"
+  :transient t
+  (interactive)
+  (if (null hubi-configure-options)
+      (error "No options to edit")
+    (let* ((opt (completing-read "Select option to edit: " hubi-configure-options nil t))
+           (new-opt (read-string "Edit option: " opt)))
+      (when (and new-opt (not (string-empty-p new-opt)))
+        (setq hubi-configure-options
+              (mapcar (lambda (x) (if (equal x opt) new-opt x))
+                      hubi-configure-options))))))
+
 ;;
 ;; The Main Configure Transient
 ;;
@@ -356,6 +370,7 @@ attempt to extract them."
                                    enabled-opts)))
                      "Flags: none"))
     ("a" hubi-configure-add-option)
+    ("e" hubi-configure-edit-option)
     ("r" hubi-configure-remove-option)]]
 
   (interactive)
