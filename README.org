@@ -59,5 +59,28 @@ presented with an interface like this:
 Once you have selected the target and setup `C-c C-c` will invoke the
 build tool. `C-g` will quit the interface.
 
+** hubi-configure
+
+Although you can `M-x hubi-configure` it is more usually triggered
+from the main `hubi` interface. It follows a similar batteries
+included approach and provides an e`x`tract configuration option to
+populate the build configuration.
+
+It currently understands the following configuration methods:
+
+- **configure**: Various flavours of configure scripts
+- **meson**: Sort of
+- **cmake**: Even less well tested
+
+* Contributing
+
+This project is very much a scratch-your-personal itch style project
+so it may be useful to nobody. Nevertheless the project is licensed
+under GPLv3 and I'll happily accept well formed pull requests. There
+is an AGENTS.md so the ability to use coding agents if you wish is
+implied. However this doesn't absolve *you the human* of the
+responsibility of understanding the purpose and structure of the
+changes. Slop will be dropped unceremoniously.
+
 
 
